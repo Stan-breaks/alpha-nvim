@@ -159,7 +159,7 @@ local header = {
 [[⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣿⣿⣷⣦⣄⣀⡹⣧⣀⡀⠀⡘⢷⣤⢞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀]],    
     },
     opts = {
-        position = {"right","top"},
+        position = "center",
         hl = "Type",
         -- wrap = "overflow";
     },
@@ -174,7 +174,7 @@ local section_mru = {
             opts = {
                 hl = "SpecialComment",
                 shrink_margin = false,
-                position = {"left","top"},
+                position = "center",
             },
         },
         { type = "padding", val = 1 },
