@@ -166,7 +166,7 @@ local header = {
        
     },
     opts = {
-        position = "center",
+        position = "left",
         hl = "Type",
         -- wrap = "overflow";
     },
@@ -207,7 +207,7 @@ local buttons = {
         dashboard.button("u", "  Update plugins", "<cmd>Lazy sync<CR>"),
         dashboard.button("q", "󰅚  Quit", "<cmd>qa<CR>"),
     },
-    position = "center",
+    position = "right",
 }
 
 local config = {
