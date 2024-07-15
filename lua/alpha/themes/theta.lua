@@ -160,7 +160,7 @@ local section_mru = {
             opts = {
                 hl = "SpecialComment",
                 shrink_margin = false,
-                position = "right",
+                position = "center",
             },
         },
         { type = "padding", val = 1 },
@@ -186,21 +186,32 @@ local buttons = {
         dashboard.button("u", "  Update plugins", "<cmd>Lazy sync<CR>"),
         dashboard.button("q", "󰅚  Quit", "<cmd>qa<CR>"),
     },
-    position = "right",
+    opts = {
+        position = "center",
+    },
 }
 
-local config = {
-    layout = {
-        { type = "padding", val = 2 },
-        header,
+local rightLayout = {
+    type = "group",
+    val = {
         { type = "padding", val = 2 },
         section_mru,
         { type = "padding", val = 2 },
         buttons,
     },
     opts = {
-        padding = { left = 1, right = 1 },
-        margin = 0,
+        position = "right",
+    },
+}
+
+local config = {
+    layout = {
+        { type = "padding", val = 2 },
+        header,
+        rightLayout,
+    },
+    opts = {
+        margin = 2,
         setup = function()
             vim.api.nvim_create_autocmd("DirChanged", {
                 pattern = "*",
