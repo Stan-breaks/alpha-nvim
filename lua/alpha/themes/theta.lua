@@ -145,9 +145,9 @@ local header = {
         [[                                ]],
     },
     opts = {
-        position = "left",
+        position = "center",
         hl = "Type",
-        wrap = "overflow",
+        -- wrap = "overflow";
     },
 }
 
@@ -172,10 +172,6 @@ local section_mru = {
             opts = { shrink_margin = false },
         },
     },
-    opts = {
-        position = "right",
-        wrap = "overflow",
-    },
 }
 
 local buttons = {
@@ -190,10 +186,7 @@ local buttons = {
         dashboard.button("u", "  Update plugins", "<cmd>Lazy sync<CR>"),
         dashboard.button("q", "󰅚  Quit", "<cmd>qa<CR>"),
     },
-    opts = {
-        position = "right",
-        wrap = "overflow",
-    },
+    position = "center",
 }
 
 local config = {
@@ -206,7 +199,7 @@ local config = {
         buttons,
     },
     opts = {
-        margin = 2,
+        margin = 5,
         setup = function()
             vim.api.nvim_create_autocmd("DirChanged", {
                 pattern = "*",
