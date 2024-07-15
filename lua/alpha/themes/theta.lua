@@ -147,7 +147,7 @@ local header = {
     opts = {
         position = "left",
         hl = "Type",
-        --wrap = "overflow",
+        wrap = "overflow",
     },
 }
 
@@ -160,7 +160,7 @@ local section_mru = {
             opts = {
                 hl = "SpecialComment",
                 shrink_margin = false,
-                position = "right",
+                position = "center",
             },
         },
         { type = "padding", val = 1 },
@@ -171,6 +171,10 @@ local section_mru = {
             end,
             opts = { shrink_margin = false },
         },
+    },
+    opts = {
+        position = "right",
+        wrap = "overflow",
     },
 }
 
@@ -188,6 +192,7 @@ local buttons = {
     },
     opts = {
         position = "right",
+        wrap = "overflow",
     },
 }
 
