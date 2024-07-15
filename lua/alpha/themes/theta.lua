@@ -1,4 +1,4 @@
--- originally authored by @AdamWhittingham
+-- Originally authored by @AdamWhittingham, modified for a more compact and prettier look
 
 local path_ok, plenary_path = pcall(require, "plenary.path")
 if not path_ok then
@@ -9,18 +9,18 @@ local dashboard = require("alpha.themes.dashboard")
 local cdir = vim.fn.getcwd()
 local if_nil = vim.F.if_nil
 
-local nvim_web_devicons = {
-    enabled = true,
-    highlight = true,
+-- Configuration
+local nvim_web_devicons = { enabled = true, highlight = true }
+local mru_opts = {
+    ignore = function(path, ext)
+        return (string.find(path, "COMMIT_EDITMSG")) or (vim.tbl_contains({ "gitcommit" }, ext))
+    end,
+    autocd = false,
 }
 
+-- Helper functions
 local function get_extension(fn)
-    local match = fn:match("^.+(%..+)$")
-    local ext = ""
-    if match ~= nil then
-        ext = match:sub(2)
-    end
-    return ext
+    return fn:match("^.+(%..+)$") or ""
 end
 
 local function icon(fn)
@@ -29,138 +29,121 @@ local function icon(fn)
     return nwd.get_icon(fn, ext, { default = true })
 end
 
-local function file_button(fn, sc, short_fn,autocd)
+local function file_button(fn, sc, short_fn, autocd)
     short_fn = short_fn or fn
-    local ico_txt
+    local ico_txt = nvim_web_devicons.enabled and (icon(fn) .. "  ") or ""
     local fb_hl = {}
 
-    if nvim_web_devicons.enabled then
-        local ico, hl = icon(fn)
-        local hl_option_type = type(nvim_web_devicons.highlight)
-        if hl_option_type == "boolean" then
-            if hl and nvim_web_devicons.highlight then
-                table.insert(fb_hl, { hl, 0, #ico })
-            end
-        end
-        if hl_option_type == "string" then
-            table.insert(fb_hl, { nvim_web_devicons.highlight, 0, #ico })
-        end
-        ico_txt = ico .. "  "
-    else
-        ico_txt = ""
-    end
-    local cd_cmd = (autocd and " | cd %:p:h" or "")
-    local file_button_el = dashboard.button(sc, ico_txt .. short_fn, "<cmd>e " .. vim.fn.fnameescape(fn) .. cd_cmd .." <CR>")
+    local cd_cmd = autocd and " | cd %:p:h" or ""
+    local file_button_el =
+        dashboard.button(sc, ico_txt .. short_fn, "<cmd>e " .. vim.fn.fnameescape(fn) .. cd_cmd .. " <CR>")
+
     local fn_start = short_fn:match(".*[/\\]")
-    if fn_start ~= nil then
+    if fn_start then
         table.insert(fb_hl, { "Comment", #ico_txt - 2, #fn_start + #ico_txt })
     end
+
     file_button_el.opts.hl = fb_hl
     return file_button_el
 end
 
-local default_mru_ignore = { "gitcommit" }
-
-local mru_opts = {
-    ignore = function(path, ext)
-        return (string.find(path, "COMMIT_EDITMSG")) or (vim.tbl_contains(default_mru_ignore, ext))
-    end,
-    autocd = false
-}
-
---- @param start number
---- @param cwd string? optional
---- @param items_number number? optional number of items to generate, default = 10
 local function mru(start, cwd, items_number, opts)
     opts = opts or mru_opts
-    items_number = if_nil(items_number, 10)
+    items_number = if_nil(items_number, 5) -- Reduced from 10 to 5 for compactness
 
     local oldfiles = {}
     for _, v in pairs(vim.v.oldfiles) do
         if #oldfiles == items_number then
             break
         end
-        local cwd_cond
-        if not cwd then
-            cwd_cond = true
-        else
-            cwd_cond = vim.startswith(v, cwd)
-        end
-        local ignore = (opts.ignore and opts.ignore(v, get_extension(v))) or false
+        local cwd_cond = not cwd or vim.startswith(v, cwd)
+        local ignore = opts.ignore and opts.ignore(v, get_extension(v)) or false
         if (vim.fn.filereadable(v) == 1) and cwd_cond and not ignore then
-            oldfiles[#oldfiles + 1] = v
+            table.insert(oldfiles, v)
         end
     end
-    local target_width = 35
 
     local tbl = {}
     for i, fn in ipairs(oldfiles) do
-        local short_fn
-        if cwd then
-            short_fn = vim.fn.fnamemodify(fn, ":.")
-        else
-            short_fn = vim.fn.fnamemodify(fn, ":~")
-        end
-
-        if #short_fn > target_width then
-            short_fn = plenary_path.new(short_fn):shorten(1, { -2, -1 })
-            if #short_fn > target_width then
-                short_fn = plenary_path.new(short_fn):shorten(1, { -1 })
-            end
-        end
-
-        local shortcut = tostring(i + start - 1)
-
-        local file_button_el = file_button(fn, shortcut, short_fn,opts.autocd)
-        tbl[i] = file_button_el
+        local short_fn = cwd and vim.fn.fnamemodify(fn, ":.") or vim.fn.fnamemodify(fn, ":~")
+        local file_button_el = file_button(fn, tostring(i + start - 1), short_fn, opts.autocd)
+        table.insert(tbl, file_button_el)
     end
-    return {
-        type = "group",
-        val = tbl,
-        opts = {},
-    }
+
+    return { type = "group", val = tbl, opts = {} }
 end
 
+-- Components
 local header = {
     type = "text",
     val = {
-      [[                                ]],
-      [[             ,,,,,,             ]],
-      [[         o#'9MMHb':'-,o,        ]],
-      [[      .oH":HH$' "' ' -*R&o,     ]],
-      [[     dMMM*""'`'      .oM"HM?.   ]],
-      [[   ,MMM'          "HLbd< ?&H\   ]],
-      [[  .:MH ."\          ` MM  MM&b  ]],
-      [[ . "*H    -        &MMMMMMMMMH: ]],
-      [[ .    dboo        MMMMMMMMMMMM. ]],
-      [[ .   dMMMMMMb      *MMMMMMMMMP. ]],
-      [[ .    MMMMMMMP        *MMMMMP . ]],
-      [[      `#MMMMM           MM6P ,  ]],
-      [[  '    `MMMP"           HM*`,   ]],
-      [[   '    :MM             .- ,    ]],
-      [[    '.   `#?..  .       ..'     ]],
-      [[       -.   .         .-        ]],
-      [[         ''-.oo,oo.-''          ]],
-      [[                                ]],
+        [[   ⣴⣶⣤⡤⠦⣤⣀⣤⠆     ⣈⣭⣭⣿⣶⣿⣦⣼⣆         ]],
+        [[    ⠉⠻⢿⣿⠿⣿⣿⣶⣦⠤⠄⡠⢾⣿⣿⡿⠋⠉⠉⠻⣿⣿⡛⣦       ]],
+        [[          ⠈⢿⣿⣟⠦ ⣾⣿⣿⣷⠄⠄⠄⠄⠻⠿⢿⣿⣧⣄     ]],
+        [[           ⣸⣿⣿⢧ ⢻⠻⣿⣿⣷⣄⣀⠄⠢⣀⡀⠈⠙⠿⠄    ]],
+        [[          ⢠⣿⣿⣿⠈  ⠡⠌⣻⣿⣿⣿⣿⣿⣿⣿⣛⣳⣤⣀⣀   ]],
+        [[   ⢠⣧⣶⣥⡤⢄ ⣸⣿⣿⠘⠄ ⢀⣴⣿⣿⡿⠛⣿⣿⣧⠈⢿⠿⠟⠛⠻⠿⠄  ]],
+        [[  ⣰⣿⣿⠛⠻⣿⣿⡦⢹⣿⣷   ⢊⣿⣿⡏  ⢸⣿⣿⡇ ⢀⣠⣄⣾⠄   ]],
+        [[ ⣠⣿⠿⠛⠄⢀⣿⣿⣷⠘⢿⣿⣦⡀ ⢸⢿⣿⣿⣄ ⣸⣿⣿⡇⣪⣿⡿⠿⣿⣷⡄  ]],
+        [[ ⠙⠃   ⣼⣿⡟  ⠈⠻⣿⣿⣦⣌⡇⠻⣿⣿⣷⣿⣿⣿ ⣿⣿⡇⠄⠛⠻⢷⣄ ]],
+        [[      ⢻⣿⣿⣄   ⠈⠻⣿⣿⣿⣷⣿⣿⣿⣿⣿⡟ ⠫⢿⣿⡆     ]],
+        [[       ⠻⣿⣿⣿⣿⣶⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⡟⢀⣀⣤⣾⡿⠃     ]],
     },
     opts = {
         position = "center",
         hl = "Type",
-        -- wrap = "overflow";
     },
 }
 
-local section_mru = {
+local function button(sc, txt, keybind)
+    local sc_ = sc:gsub("%s", ""):gsub("SPC", "<leader>")
+    local opts = {
+        position = "center",
+        text = txt,
+        shortcut = sc,
+        cursor = 3,
+        width = 38,
+        align_shortcut = "right",
+        hl_shortcut = "Keyword",
+    }
+    if keybind then
+        opts.keymap = { "n", sc_, keybind, { noremap = true, silent = true } }
+    end
+    return {
+        type = "button",
+        val = txt,
+        on_press = function()
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(keybind, true, false, true), "normal", false)
+        end,
+        opts = opts,
+    }
+end
+
+local buttons = {
     type = "group",
     val = {
+        button("e", "  New file", "<cmd>ene<CR>"),
+        button("SPC f f", "󰈞  Find file", "<cmd>Telescope find_files<CR>"),
+        button("SPC f g", "󰊄  Live grep", "<cmd>Telescope live_grep<CR>"),
+        button("c", "  Configuration", "<cmd>cd ~/.config/nvim/ <CR>"),
+        button("u", "  Update plugins", "<cmd>Lazy sync<CR>"),
+        button("q", "󰅚  Quit", "<cmd>qa<CR>"),
+    },
+    opts = {
+        spacing = 1,
+    },
+}
+
+-- Main configuration
+local config = {
+    layout = {
+        { type = "padding", val = 1 },
+        header,
+        { type = "padding", val = 1 },
         {
             type = "text",
             val = "Recent files",
-            opts = {
-                hl = "SpecialComment",
-                shrink_margin = false,
-                position = "center",
-            },
+            opts = { hl = "SpecialComment", position = "center" },
         },
         { type = "padding", val = 1 },
         {
@@ -170,54 +153,30 @@ local section_mru = {
             end,
             opts = { shrink_margin = false },
         },
-    },
-}
-
-local buttons = {
-    type = "group",
-    val = {
-        { type = "text", val = "Quick links", opts = { hl = "SpecialComment", position = "center" } },
         { type = "padding", val = 1 },
-        dashboard.button("e", "  New file", "<cmd>ene<CR>"),
-        dashboard.button("SPC f f", "󰈞  Find file"),
-        dashboard.button("SPC f g", "󰊄  Live grep"),
-        dashboard.button("c", "  Configuration", "<cmd>cd ~/.config/nvim/ <CR>"),
-        dashboard.button("u", "  Update plugins", "<cmd>Lazy sync<CR>"),
-        dashboard.button("q", "󰅚  Quit", "<cmd>qa<CR>"),
-    },
-    position = "center",
-}
-
-local config = {
-    layout = {
-        { type = "padding", val = 2 },
-        header,
-        { type = "padding", val = 2 },
-        section_mru,
-        { type = "padding", val = 2 },
         buttons,
     },
     opts = {
-        margin = 5,
+        margin = 1,
         setup = function()
-            vim.api.nvim_create_autocmd('DirChanged', {
-                pattern = '*',
+            vim.api.nvim_create_autocmd("DirChanged", {
+                pattern = "*",
                 group = "alpha_temp",
-                callback = function ()
-                    require('alpha').redraw()
-                    vim.cmd('AlphaRemap')
+                callback = function()
+                    require("alpha").redraw()
+                    vim.cmd("AlphaRemap")
                 end,
             })
         end,
     },
 }
 
+-- Return the module
 return {
     header = header,
     buttons = buttons,
     mru = mru,
     config = config,
-    -- theme specific config
     mru_opts = mru_opts,
     leader = dashboard.leader,
     nvim_web_devicons = nvim_web_devicons,
