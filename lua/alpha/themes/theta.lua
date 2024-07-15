@@ -160,7 +160,7 @@ local section_mru = {
             opts = {
                 hl = "SpecialComment",
                 shrink_margin = false,
-                position = "center",
+                position = "right",
             },
         },
         { type = "padding", val = 1 },
@@ -187,19 +187,6 @@ local buttons = {
         dashboard.button("q", "󰅚  Quit", "<cmd>qa<CR>"),
     },
     opts = {
-        position = "center",
-    },
-}
-
-local rightLayout = {
-    type = "group",
-    val = {
-        { type = "padding", val = 2 },
-        section_mru,
-        { type = "padding", val = 2 },
-        buttons,
-    },
-    opts = {
         position = "right",
     },
 }
@@ -208,7 +195,10 @@ local config = {
     layout = {
         { type = "padding", val = 2 },
         header,
-        rightLayout,
+        { type = "padding", val = 2 },
+        section_mru,
+        { type = "padding", val = 2 },
+        buttons,
     },
     opts = {
         margin = 2,
