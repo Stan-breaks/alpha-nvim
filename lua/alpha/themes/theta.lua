@@ -145,9 +145,32 @@ local header = {
         [[                                ]],
     },
     opts = {
-        position = "center",
+        position = "left",
         hl = "Type",
-        -- wrap = "overflow",
+        --wrap = "overflow",
+    },
+}
+
+local section_mru = {
+    type = "group",
+    val = {
+        {
+            type = "text",
+            val = "Recent files",
+            opts = {
+                hl = "SpecialComment",
+                shrink_margin = false,
+                position = "right",
+            },
+        },
+        { type = "padding", val = 1 },
+        {
+            type = "group",
+            val = function()
+                return { mru(0, cdir) }
+            end,
+            opts = { shrink_margin = false },
+        },
     },
 }
 
@@ -163,63 +186,21 @@ local buttons = {
         dashboard.button("u", "  Update plugins", "<cmd>Lazy sync<CR>"),
         dashboard.button("q", "󰅚  Quit", "<cmd>qa<CR>"),
     },
-    position = "center",
+    position = "right",
 }
 
--- Main configuration
 local config = {
     layout = {
         { type = "padding", val = 2 },
-        {
-            type = "group",
-            val = {
-                {
-                    type = "group",
-                    val = {
-                        { type = "padding", val = 2 },
-                        header,
-                    },
-                    opts = {
-                        position = "left",
-                        width = 40, -- Adjust this value as needed
-                    },
-                },
-                {
-                    type = "group",
-                    val = {
-                        { type = "padding", val = 2 },
-                        {
-                            type = "text",
-                            val = "Recent files",
-                            opts = {
-                                hl = "SpecialComment",
-                                position = "center",
-                            },
-                        },
-                        { type = "padding", val = 1 },
-                        {
-                            type = "group",
-                            val = function()
-                                return { mru(0, cdir) }
-                            end,
-                            opts = { shrink_margin = false },
-                        },
-                        { type = "padding", val = 2 },
-                        buttons,
-                    },
-                    opts = {
-                        position = "right",
-                        width = 80, -- Adjust this value as needed
-                    },
-                },
-            },
-            opts = {
-                spacing = 20, -- Adjust this value to change spacing between left and right sections
-            },
-        },
+        header,
+        { type = "padding", val = 2 },
+        section_mru,
+        { type = "padding", val = 2 },
+        buttons,
     },
     opts = {
-        margin = 5,
+        padding = { left = 1, right = 1 },
+        margin = 0,
         setup = function()
             vim.api.nvim_create_autocmd("DirChanged", {
                 pattern = "*",
